@@ -56,7 +56,7 @@ export class HemingwaySettingTab extends PluginSettingTab {
       .setName("Target grade level")
       .setDesc("Grades at or below this show as Good. Hemingway uses 9.")
       .addSlider((sl) =>
-        sl.setLimits(4, 16, 1).setValue(s.gradeTarget).setDynamicTooltip().onChange((v) => {
+        sl.setLimits(4, 16, 1).setValue(s.gradeTarget).onChange((v) => {
           s.gradeTarget = v;
           void this.plugin.persist();
         })

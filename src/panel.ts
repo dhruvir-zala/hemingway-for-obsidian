@@ -80,7 +80,7 @@ export class HemingwayPanel extends ItemView {
       return;
     }
 
-    if (data!.selection) root.createDiv({ cls: "hw-selection", text: "Selected text" });
+    if (data.selection) root.createDiv({ cls: "hw-selection", text: "Selected text" });
 
     const target = s.gradeTarget;
     const label = a.grade <= target ? "Good" : a.grade <= target + 3 ? "OK" : "Poor";
@@ -104,7 +104,7 @@ export class HemingwayPanel extends ItemView {
     row("Paragraphs", String(a.paragraphs));
     row("Reading time", formatTime(a.words, s.wpm));
 
-    this.renderGoals(root, a.words, data!.selection);
+    this.renderGoals(root, a.words, data.selection);
 
     if (s.mode === "write") {
       root.createDiv({ cls: "hw-cards-hint", text: "Highlights are hidden. Switch to Edit to see them." });

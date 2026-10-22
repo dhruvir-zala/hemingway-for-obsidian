@@ -36,6 +36,45 @@ export const DEFAULTS: Settings = {
 const dayKey = (d = new Date()) =>
   `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function isKind(value: unknown): value is Kind {
+  return typeof value === "string" && ALL_KINDS.some((kind) => kind === value);
+}
+
+function normalizeSettings(value: unknown): Settings {
+  const saved = isRecord(value) ? value : {};
+  const number = (key: string, fallback: number) => {
+    const candidate = saved[key];
+    return typeof candidate === "number" && Number.isFinite(candidate) ? candidate : fallback;
+  };
+  const daily: Record<string, number> = {};
+  if (isRecord(saved.daily)) {
+    for (const [date, count] of Object.entries(saved.daily)) {
+      if (typeof count === "number" && Number.isFinite(count) && count >= 0) daily[date] = count;
+    }
+  }
+
+  return {
+    ...DEFAULTS,
+    mode: saved.mode === "write" || saved.mode === "edit" ? saved.mode : DEFAULTS.mode,
+    hidden: Array.isArray(saved.hidden) ? saved.hidden.filter(isKind) : [],
+    gradeTarget: number("gradeTarget", DEFAULTS.gradeTarget),
+    wpm: number("wpm", DEFAULTS.wpm),
+    extraWeakeners: Array.isArray(saved.extraWeakeners)
+      ? saved.extraWeakeners.filter((item): item is string => typeof item === "string")
+      : [],
+    ignore: Array.isArray(saved.ignore)
+      ? saved.ignore.filter((item): item is string => typeof item === "string")
+      : [],
+    wordGoal: number("wordGoal", DEFAULTS.wordGoal),
+    dailyGoal: number("dailyGoal", DEFAULTS.dailyGoal),
+    daily,
+  };
+}
+
 export interface PanelData {
   analysis: Analysis;
   selection: boolean;
@@ -53,10 +92,8 @@ export default class HemingwayPlugin extends Plugin {
   private saveSoon = debounce(() => void this.saveData(this.settings), 2000, true);
 
   async onload() {
-    const saved = (await this.loadData()) ?? {};
-    this.settings = { ...DEFAULTS, ...saved };
-    this.settings.hidden = (this.settings.hidden ?? []).filter((k) => ALL_KINDS.includes(k));
-    this.settings.daily = { ...(saved.daily ?? {}) };
+    const saved: unknown = await this.loadData();
+    this.settings = normalizeSettings(saved);
 
     this.registerEditorExtension(hemingwayExtension(this, this.field));
     this.registerMarkdownPostProcessor((el) => highlightRendered(el, this));
@@ -250,6 +287,6 @@ export default class HemingwayPlugin extends Plugin {
       leaf = right;
       await leaf.setViewState({ type: VIEW_TYPE, active: reveal });
     }
-    if (reveal) this.app.workspace.revealLeaf(leaf);
+    if (reveal) await this.app.workspace.revealLeaf(leaf);
   }
 }

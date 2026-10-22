@@ -2,7 +2,7 @@
   "id": "hemingway",
   "name": "Hemingway",
   "version": "1.0.1",
-  "minAppVersion": "1.4.0",
+  "minAppVersion": "1.7.2",
   "description": "Unofficial. Not affiliated with Hemingway Editor. Highlights hard sentences, adverbs, passive voice and complex words, with a readability grade.",
   "author": "dhruvir-zala",
   "isDesktopOnly": false,

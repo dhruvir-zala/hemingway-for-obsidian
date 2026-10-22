@@ -12,7 +12,7 @@
 .hw-on.hw-hide-adverb .cm-hw-adverb,
 .hw-on.hw-hide-passive .cm-hw-passive,
 .hw-on.hw-hide-weakener .cm-hw-weakener,
-.hw-on.hw-hide-simpler .cm-hw-simpler { background-color: transparent !important; }
+.hw-on.hw-hide-simpler .cm-hw-simpler { background-color: transparent; }
 /* A hidden word colour must not hide the sentence colour beneath it */
 .hw-on .cm-hw { color: inherit; }
 
@@ -82,10 +82,10 @@
 .hw-today { margin-bottom: 12px; }
 
 /* Focus mode */
-.hw-focus .workspace-ribbon,
-.hw-focus .status-bar,
-.hw-focus .workspace-tab-header-container,
-.hw-focus .view-header { display: none !important; }
+body.hw-focus .workspace-ribbon,
+body.hw-focus .status-bar,
+body.hw-focus .workspace-tab-header-container,
+body.hw-focus .view-header { display: none; }
 .hw-focus-exit { position: fixed; right: 16px; bottom: 16px; z-index: 900; display: flex; flex-direction: row-reverse; align-items: center; gap: 6px; opacity: .3; transition: opacity .2s; cursor: pointer; }
 .hw-focus-exit:hover { opacity: 1; }
 

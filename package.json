@@ -14,7 +14,6 @@
     "@codemirror/state": "6.7.6",
     "@codemirror/view": "6.43.13",
     "@types/node": "^20.0.0",
-    "builtin-modules": "^3.3.0",
     "esbuild": "^0.21.0",
     "obsidian": "1.14.4",
     "tslib": "^2.6.0",

@@ -40,7 +40,7 @@ export interface Analysis {
   counts: Record<Kind, number>;
 }
 
-const WORD_RE = /\d+(?:[.,]\d+)*|[A-Za-z\u00C0-\u024F]+(?:['’\-][A-Za-z\u00C0-\u024F\d]+)*/g;
+const WORD_RE = /\d+(?:[.,]\d+)*|[A-Za-z\u00C0-\u024F]+(?:['’-][A-Za-z\u00C0-\u024F\d]+)*/g;
 
 function blank(chars: string[], start: number, end: number): void {
   for (let i = start; i < end && i < chars.length; i++) {
