@@ -1,6 +1,6 @@
 # Hemingway for Obsidian
 
-! [How Hemingway works.png]
+![How Hemingway works.png]
 
 > ## ⚠️ Not affiliated with Hemingway Editor
 > **Hemingway** (this plugin) is an **independent, unofficial, community-made** plugin. It is **not affiliated with, endorsed by, sponsored by, or connected to** Hemingway Editor, the Hemingway App, or Boondoggle Studio, LLC, the owner of [hemingwayapp.com](https://hemingwayapp.com/). "Hemingway Editor" and "Hemingway App" are trademarks of their respective owners and are used here only to describe the style of feedback this plugin gives. This plugin contains no code, logos, text or other assets from hemingwayapp.com. If you want the official product, including its AI and grammar tools, use [hemingwayapp.com](https://hemingwayapp.com/).
