@@ -61,10 +61,11 @@ function highlightBlock(block: HTMLElement, plugin: HemingwayPlugin) {
         frag.append(chunk);
         continue;
       }
-      const span = document.createElement("span");
-      span.className = "cm-hw " + covering.map((i) => CLASSES[i.kind]).join(" ");
+      const span = block.createSpan({
+        cls: "cm-hw " + covering.map((i) => CLASSES[i.kind]).join(" "),
+        text: chunk,
+      });
       span.title = covering.map((i) => TITLES[i.kind]).join(" ");
-      span.textContent = chunk;
       frag.append(span);
     }
     node.replaceWith(frag);

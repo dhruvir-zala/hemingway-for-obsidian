@@ -87,7 +87,7 @@ Copy or symlink the repo into `<vault>/.obsidian/plugins/hemingway/`, reload Obs
 ### Cutting a release
 
 1. `npm version patch` (or `minor`, or `major`). It updates `manifest.json` and `versions.json` and makes the tag.
-2. `git push --follow-tags`. A GitHub Action builds it and drafts a release with the three files.
+2. `git push --follow-tags`. A GitHub Action tests and builds the plugin, attests the release assets, and drafts a release with generated notes and the three files.
 3. Open the draft and hit publish.
 
 ## Contributing

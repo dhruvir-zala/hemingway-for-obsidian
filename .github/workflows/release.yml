@@ -7,6 +7,8 @@ on:
 
 permissions:
   contents: write
+  attestations: write
+  id-token: write
 
 jobs:
   release:
@@ -20,10 +22,14 @@ jobs:
       - run: npm ci
       - run: npm test
       - run: npm run build
+      - name: Attest release assets
+        uses: actions/attest-build-provenance@v2
+        with:
+          subject-path: main.js,styles.css
       - name: Create draft release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           gh release create "${GITHUB_REF_NAME}" \
-            --title "${GITHUB_REF_NAME}" --draft \
+            --title "${GITHUB_REF_NAME}" --draft --generate-notes \
             main.js manifest.json styles.css
