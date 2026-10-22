@@ -3,36 +3,52 @@
 > ## ⚠️ Not affiliated with Hemingway Editor
 > **Hemingway** (this plugin) is an **independent, unofficial, community-made** plugin. It is **not affiliated with, endorsed by, sponsored by, or connected to** Hemingway Editor, the Hemingway App, or Boondoggle Studio, LLC, the owner of [hemingwayapp.com](https://hemingwayapp.com/). "Hemingway Editor" and "Hemingway App" are trademarks of their respective owners and are used here only to describe the style of feedback this plugin gives. This plugin contains no code, logos, text or other assets from hemingwayapp.com. If you want the official product, including its AI and grammar tools, use [hemingwayapp.com](https://hemingwayapp.com/).
 
-Hemingway-style writing feedback, live inside your normal Obsidian notes. No separate window, no copy and paste, no account, and nothing leaves your device.
+I use the Hemingway app every day. It's the best thing I know for catching a sentence that's trying too hard. But my notes live in Obsidian, so every time I wanted feedback I was copying text out, pasting it into a browser tab, fixing things there, and pasting it back. Which is a dumb way to spend a Tuesday.
 
-| Colour | Meaning |
+So this plugin does the same kind of thing right inside your notes. You type, the highlights show up. No window to open, no account, and nothing leaves your computer.
+
+## What the colors mean
+
+| Color | What it's telling you |
 | --- | --- |
-| Red | Very hard to read sentence |
-| Yellow | Hard to read sentence |
-| Blue | Adverbs, passive voice and weakening phrases |
-| Purple | A word or phrase with a simpler alternative |
+| Red | This sentence is very hard to read. Your reader is going to get lost. |
+| Yellow | This sentence is hard to read. Shorten it or split it. |
+| Blue | An adverb, a passive verb, or a hedge like "I think" or "just". |
+| Purple | There's a plainer word for this. "Utilize" wants to be "use". |
 
-## Features
+When a blue or purple word sits inside a yellow sentence, the word wins. You can still see both. You just don't get a muddy brown mess.
 
-- **Live highlights** in Live Preview, Source mode and Reading view.
-- **Click any highlight** for an explanation and a one-click fix: swap in a simpler word, remove an adverb or qualifier, or ignore a word for good. If several issues overlap, use the `‹ ›` pager.
-- **Side panel** with the readability grade, letters, characters, words, sentences, paragraphs, reading time and a card for each issue type. The eye icons show or hide each highlight type.
-- **Write / Edit tabs** to hide or show all highlights.
-- **Selection stats:** select text and the panel and status bar switch to that selection.
-- **Goals:** an optional word goal per note, a daily word goal and a streak counter.
-- **Focus mode:** hides sidebars, tabs and the status bar. Use the "Toggle focus mode" command.
-- **Settings:** target grade, reading speed, custom weakening phrases, ignored words, and per-type toggles.
-- Markdown-aware: front matter, code, links, embeds, comments and syntax are not counted or flagged.
+## What it does
+
+**It highlights as you type.** Live Preview, Source mode and Reading view all work. I tested on a note full of front matter, code blocks and links, because my first version choked on front matter and froze Obsidian. That's fixed, and it's got a test now.
+
+**You click a highlight and it explains itself.** A small card pops up with a one-line reason and a button. For a purple word, the button swaps in the simpler one. For an adverb or a hedge, it deletes the word and cleans up the spacing and commas. If it removes the first word of a sentence, it capitalizes the next one so you don't have to. If two problems land on the same spot, a little `‹ 1/2 ›` lets you flip between them. And if a word is fine and the plugin is just wrong, "Ignore" tells it to leave that word alone from now on.
+
+**The side panel gives you the grade.** It shows the reading grade, letters, characters, words, sentences, paragraphs and reading time, plus a card for each type of problem with a count. Each card has an eye icon, so if the blue is driving you nuts today, you can turn it off and keep the yellow.
+
+**Write and Edit tabs.** Write hides every highlight so you can just draft. Edit turns them back on. That's the whole trick, and it's the right one. Nobody drafts well while a screen is yelling at them.
+
+**Select some text and the panel switches to that.** Handy when you only care about one paragraph, and the status bar says "Selection" so you don't forget what you're looking at.
+
+**Goals, if you want them.** Set a word goal for a note, or a daily goal across everything. You get a progress bar and a streak counter. They're both off by default, because some people find a streak motivating and some people find it a small daily lawsuit.
+
+**Focus mode.** Hides the sidebars, tabs and status bar. There's a faint "Exit focus" button in the corner for when you come up for air.
+
+## What it doesn't do
+
+No AI rewriting. No grammar checking. No tone changes. The official Hemingway app has paid tools for that, and I'm not going to pretend this replaces them. This is the free, local, highlight-and-fix part, and that's all.
+
+The grade matches the real one on the sample note I checked it against (Grade 8, same sentence counts). But I wrote the word lists myself, so on your writing you'll sometimes see a flag the website wouldn't give you, or miss one it would. If you find one, open an issue. Those are usually a one-line fix.
 
 ## Install
 
-### From the community plugin list
-Once published: **Settings → Community plugins → Browse → "Hemingway"**.
+### Once it's in the community list
+Settings → Community plugins → Browse → search for "Hemingway".
 
-### Manually
-1. Download `main.js`, `manifest.json` and `styles.css` from the [latest release](../../releases/latest).
-2. Copy them to `<your vault>/.obsidian/plugins/hemingway/`.
-3. Reload Obsidian and enable **Hemingway** under Settings → Community plugins.
+### By hand
+1. Grab `main.js`, `manifest.json` and `styles.css` from the [latest release](../../releases/latest).
+2. Put them in `<your vault>/.obsidian/plugins/hemingway/`. You may have to make that folder.
+3. Restart Obsidian and switch on **Hemingway** under Settings → Community plugins.
 
 ### With BRAT
 Add `dhruvir-zala/hemingway-for-obsidian` in the [BRAT](https://github.com/TfTHacker/obsidian42-brat) plugin.
@@ -41,42 +57,44 @@ Add `dhruvir-zala/hemingway-for-obsidian` in the [BRAT](https://github.com/TfTHa
 
 | Command | What it does |
 | --- | --- |
-| Toggle highlights (Write / Edit) | Show or hide all highlights |
-| Toggle focus mode | Hide sidebars, tabs and the status bar |
-| Open panel | Open the Hemingway side panel |
+| Toggle highlights (Write / Edit) | Shows or hides every highlight |
+| Toggle focus mode | Hides the sidebars, tabs and status bar |
+| Open panel | Opens the Hemingway side panel |
 
-Assign hotkeys in Settings → Hotkeys.
+Give them hotkeys in Settings → Hotkeys. I'd start with the first one.
 
-## How it works
+## Settings
 
-The grade uses the same formula as Hemingway: `4.71 × (letters / words) + 0.5 × (words / sentences) − 21.43`. A sentence is hard to read at 14 or more words and grade 10 or higher, and very hard at grade 14 or higher. Everything runs locally and the word lists are in [`src/lexicon.ts`](src/lexicon.ts). They are an approximation of Hemingway's, so results can differ slightly from the website.
+You can change the target grade (9 by default), your reading speed for the reading-time number, and which types of highlight are on. You can add your own hedge phrases, one per line, and a list of words to never flag. That second list is for the words you use on purpose. Nobody's taking "very" away from you, but the plugin will mention it.
 
-Overlapping highlights: word-level colours (blue, purple) are drawn on top of sentence colours (red, yellow).
+## How the grade works
 
-## Development
+It's the same formula the Hemingway app uses: `4.71 × (letters ÷ words) + 0.5 × (words ÷ sentences) − 21.43`. A sentence is "hard" when it has 14 or more words and lands at grade 10 or higher, and "very hard" at grade 14 or higher. It strips out markdown first, so front matter, code, links, embeds and comments don't count and don't get flagged. Everything runs on your machine. The word lists are in [`src/lexicon.ts`](src/lexicon.ts) if you want to see exactly what it's judging you on.
+
+## Building it yourself
 
 ```bash
 npm install
-npm run dev      # rebuild on change
-npm run build    # type-check and produce main.js
-npm test         # analyzer unit tests
+npm run dev      # rebuilds when you save
+npm run build    # type-checks and makes main.js
+npm test         # runs the analyzer tests
 ```
 
-Symlink or copy the repo into `<vault>/.obsidian/plugins/hemingway/` and reload Obsidian to try changes. See [CONTRIBUTING.md](CONTRIBUTING.md).
+Copy or symlink the repo into `<vault>/.obsidian/plugins/hemingway/`, reload Obsidian, and you're testing your own changes. More in [CONTRIBUTING.md](CONTRIBUTING.md).
 
-## Releasing
+### Cutting a release
 
-1. `npm version patch` (or `minor` / `major`). This updates `manifest.json` and `versions.json`.
-2. `git push --follow-tags`. The GitHub Action builds and creates a draft release with `main.js`, `manifest.json` and `styles.css`.
-3. Publish the draft.
+1. `npm version patch` (or `minor`, or `major`). It updates `manifest.json` and `versions.json` and makes the tag.
+2. `git push --follow-tags`. A GitHub Action builds it and drafts a release with the three files.
+3. Open the draft and hit publish.
 
 ## Contributing
 
-Bug reports, word-list additions and translations are welcome. Open an issue or a pull request.
+Bug reports, word-list fixes and translations are welcome. The best bug report has the sentence, which highlight was wrong, and what you expected instead. Don't copy anything from hemingwayapp.com, though. Everything here has to be written independently.
 
-## Disclaimer and trademarks
+## Trademarks
 
-All product names, trademarks and registered trademarks are the property of their respective owners. Their use here does not imply any affiliation or endorsement. The readability grade uses a published formula, the word lists are independently written, and nothing was copied from hemingwayapp.com.
+All product names and trademarks belong to their owners, and using them here doesn't mean anyone is affiliated with or endorses anyone. The grade uses a published formula, the word lists are my own, and nothing was copied from hemingwayapp.com.
 
 ## License
 
