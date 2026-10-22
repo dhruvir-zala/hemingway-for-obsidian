@@ -87,7 +87,6 @@ export default class HemingwayPlugin extends Plugin {
     void this.saveData(this.settings);
     document.body.classList.remove("hw-on", "hw-focus", ...ALL_KINDS.map((k) => "hw-hide-" + k));
     document.body.querySelectorAll(".hw-tip").forEach((e) => e.remove());
-    this.app.workspace.detachLeavesOfType(VIEW_TYPE);
   }
 
   private trackLeaf(leaf: WorkspaceLeaf | null) {
