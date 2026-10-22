@@ -35,7 +35,7 @@ Once published: **Settings → Community plugins → Browse → "Hemingway"**.
 3. Reload Obsidian and enable **Hemingway** under Settings → Community plugins.
 
 ### With BRAT
-Add `dhruvir-zala/Hemingway-editor-for-Obsidian` in the [BRAT](https://github.com/TfTHacker/obsidian42-brat) plugin.
+Add `dhruvir-zala/hemingway-for-obsidian` in the [BRAT](https://github.com/TfTHacker/obsidian42-brat) plugin.
 
 ## Commands
 
