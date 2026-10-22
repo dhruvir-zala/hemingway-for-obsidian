@@ -51,7 +51,7 @@ function highlightBlock(block: HTMLElement, plugin: HemingwayPlugin) {
       cuts.add(Math.min(node.data.length, i.end - from));
     }
     const pts = [...cuts].sort((x, y) => x - y);
-    const frag = document.createDocumentFragment();
+    const frag = createFragment();
     for (let p = 0; p < pts.length - 1; p++) {
       const s = pts[p];
       const e = pts[p + 1];
