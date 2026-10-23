@@ -144,4 +144,4 @@ body.hw-focus .view-header { display: none; }
 .hw-info-title { font-size: var(--font-ui-medium, 15px); font-weight: var(--font-semibold, 600); color: var(--text-normal); margin-bottom: 6px; }
 .hw-info-tip p { margin: 0; font-size: var(--font-ui-small, 13px); line-height: 1.5; color: var(--text-muted); }
 .hw-tip-actions button:disabled { opacity: .6; cursor: default; }
-.hw-sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.hw-sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }

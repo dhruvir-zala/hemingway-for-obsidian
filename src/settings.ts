@@ -106,11 +106,13 @@ export class HemingwaySettingTab extends PluginSettingTab {
   }
 
   private refreshAi?: () => void;
+  private setAiToggle?: (value: boolean) => void;
 
   hide() {
     this.onClose?.();
     this.onClose = undefined;
     this.refreshAi = undefined;
+    this.setAiToggle = undefined;
   }
 
   private renderBuiltinSetup(setting: Setting) {
@@ -148,7 +150,7 @@ export class HemingwaySettingTab extends PluginSettingTab {
         this.plugin.settings.aiEnabled = false;
         void this.plugin.persist();
         new Notice(`${label()} deleted. AI rewrite is off.`);
-        this.display();
+        this.setAiToggle?.(false);
       } catch (e) {
         await check();
         setting.setDesc(`Couldn't delete: ${e instanceof Error ? e.message : "unknown error"}.`);
@@ -280,12 +282,13 @@ export class HemingwaySettingTab extends PluginSettingTab {
         heading: "AI rewrite (optional)",
         rows: [
           row("Enable AI rewrite", "Adds a “Rewrite with AI” button to yellow and red sentences. The model runs on your computer, so your writing never leaves it.", (setting) =>
-            setting.addToggle((toggle) =>
-              toggle.setValue(this.plugin.settings.aiEnabled).onChange((value) => {
+            setting.addToggle((toggle) => {
+              this.setAiToggle = (value) => void toggle.setValue(value);
+              return toggle.setValue(this.plugin.settings.aiEnabled).onChange((value) => {
                 this.plugin.settings.aiEnabled = value;
                 void this.plugin.persist();
-              })
-            )
+              });
+            })
           ),
           row("Rewrite style", "How the AI edits. “Keep my voice” changes the least.", (setting) =>
             setting.addDropdown((dd) =>
