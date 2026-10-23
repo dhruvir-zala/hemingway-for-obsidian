@@ -36,9 +36,13 @@ When a blue or purple word sits inside a yellow sentence, the word wins. You can
 
 **Focus mode.** Hides the sidebars, tabs and status bar. There's a faint "Exit focus" button in the corner for when you come up for air.
 
+**Optional local AI rewrite.** Turn it on in settings and yellow and red sentences get a "Rewrite with AI" button. You see the suggestion first, then apply it or click **Another option** to request another version. Passive-voice highlights offer a sentence rewrite too. To rewrite any text, select it and right-click → "Hemingway: rewrite selection" (or use the command "Rewrite selection with AI" and give it a hotkey). The built-in model is **Llama 3.2 3B Instruct • Q4 MLC** (about 2.3 GB), which runs inside Obsidian on your graphics chip. It is not a GGUF Q4_K_M/Q8_0 file. Open Hemingway's settings and click **Download & enable**; the model downloads once and then runs offline. Your writing never leaves your computer. It needs WebGPU, which recent desktop Obsidian has. It's off by default.
+
+**Proofread with AI.** A separate tool that fixes mistakes without rewriting your sentences. Right-click → "Hemingway: proofread note" (or select text first to check just that), click **✓ Proofread** on a highlight card, or run **Proofread with AI (selection or whole note)**. It checks typos, punctuation, grammar, wrong words and repetition in one pass. You get a list of individual fixes, each with a checkbox, and apply the ones you want as a single undo step. The plugin rejects any result where the model changes too many words, and it never touches links, code, front matter or numbers.
+
 ## What it doesn't do
 
-No AI rewriting. No grammar checking. No tone changes. The official Hemingway app has paid tools for that, and I'm not going to pretend this replaces them. This is the free, local, highlight-and-fix part, and that's all.
+No cloud AI: optional AI rewriting and proofreading run on your device with a model you download. This is not a full substitute for the Hemingway app's paid tools, and it does not offer cloud AI or tone-changing tools.
 
 The grade matches the real one on the sample note I checked it against (Grade 8, same sentence counts). But I wrote the word lists myself, so on your writing you'll sometimes see a flag the website wouldn't give you, or miss one it would. If you find one, open an issue. Those are usually a one-line fix.
 
@@ -62,12 +66,16 @@ Add `dhruvir-zala/hemingway-for-obsidian` in the [BRAT](https://github.com/TfTHa
 | Toggle highlights (Write / Edit) | Shows or hides every highlight |
 | Toggle focus mode | Hides the sidebars, tabs and status bar |
 | Open panel | Opens the Hemingway side panel |
+| Rewrite selection with AI | Rewrites the selected text locally with AI |
+| Proofread with AI (selection or whole note) | Suggests selectable proofreading fixes for the selection, or the whole note if nothing is selected |
 
 Give them hotkeys in Settings → Hotkeys. I'd start with the first one.
 
 ## Settings
 
 You can change the target grade (9 by default), your reading speed for the reading-time number, and which types of highlight are on. You can add your own hedge phrases, one per line, and a list of words to never flag. That second list is for the words you use on purpose. Nobody's taking "very" away from you, but the plugin will mention it.
+
+AI rewriting is off by default. In the **AI rewrite (optional)** settings, choose a rewrite style and download the built-in model. AI requires WebGPU; the first model download needs an internet connection and uses about 2.3 GB of storage. After downloading, rewriting and proofreading run locally and work offline. You can delete the model from settings to free its storage.
 
 ## How the grade works
 
@@ -79,14 +87,14 @@ It's the same formula the Hemingway app uses: `4.71 × (letters ÷ words) + 0.5 
 npm install
 npm run dev      # rebuilds when you save
 npm run build    # type-checks and makes main.js
-npm test         # runs the analyzer tests
+npm test         # runs the analyzer and proofreading tests
 ```
 
 Copy or symlink the repo into `<vault>/.obsidian/plugins/hemingway/`, reload Obsidian, and you're testing your own changes. More in [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ### Cutting a release
 
-1. `npm version patch` (or `minor`, or `major`). It updates `manifest.json` and `versions.json` and makes the tag.
+1. `npm version minor` (or `patch` / `major` as appropriate). It updates the version metadata and makes the tag.
 2. `git push --follow-tags`. A GitHub Action tests and builds the plugin, attests the release assets, and drafts a release with generated notes and the three files.
 3. Open the draft and hit publish.
 

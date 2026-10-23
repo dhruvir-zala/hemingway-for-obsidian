@@ -1,10 +1,13 @@
-import { MarkdownView, Plugin, WorkspaceLeaf, debounce, setIcon } from "obsidian";
+import { Editor, MarkdownView, Notice, Plugin, WorkspaceLeaf, debounce, setIcon } from "obsidian";
 import { EditorView } from "@codemirror/view";
 import { Analysis, Kind, Options, analyze } from "./analyzer";
 import { createField, hemingwayExtension, rebuildEffect } from "./editor";
 import { ALL_KINDS } from "./info";
 import { HemingwayPanel, VIEW_TYPE } from "./panel";
 import { highlightRendered } from "./reading";
+import type { AiConfig, RewriteStyle } from "./ai";
+import { ProofreadModal } from "./proofreadModal";
+import { BUILTIN, DEFAULT_BUILTIN, unloadEngine } from "./webllm";
 import { HemingwaySettingTab } from "./settings";
 
 export type Mode = "write" | "edit";
@@ -19,6 +22,9 @@ export interface Settings {
   wordGoal: number;
   dailyGoal: number;
   daily: Record<string, number>;
+  aiEnabled: boolean;
+  aiBuiltinModel: string;
+  aiStyle: RewriteStyle;
 }
 
 export const DEFAULTS: Settings = {
@@ -31,6 +37,9 @@ export const DEFAULTS: Settings = {
   wordGoal: 0,
   dailyGoal: 0,
   daily: {},
+  aiEnabled: false,
+  aiBuiltinModel: DEFAULT_BUILTIN,
+  aiStyle: "balanced",
 };
 
 const dayKey = (d = new Date()) =>
@@ -72,6 +81,9 @@ function normalizeSettings(value: unknown): Settings {
     wordGoal: number("wordGoal", DEFAULTS.wordGoal),
     dailyGoal: number("dailyGoal", DEFAULTS.dailyGoal),
     daily,
+    aiEnabled: saved.aiEnabled === true,
+    aiStyle: saved.aiStyle === "voice" || saved.aiStyle === "punchy" ? saved.aiStyle : "balanced",
+    aiBuiltinModel: typeof saved.aiBuiltinModel === "string" && saved.aiBuiltinModel in BUILTIN ? saved.aiBuiltinModel : DEFAULT_BUILTIN,
   };
 }
 
@@ -90,6 +102,13 @@ export default class HemingwayPlugin extends Plugin {
   private focusSaved: { left: boolean; right: boolean } | null = null;
   private focusBtn: HTMLElement | null = null;
   private saveSoon = debounce(() => void this.saveData(this.settings), 2000, true);
+
+  rewriteSelection: (view: EditorView) => void = () => {};
+
+  aiConfig(): AiConfig {
+    const { aiBuiltinModel, aiStyle } = this.settings;
+    return { builtinModel: aiBuiltinModel, style: aiStyle };
+  }
 
   async onload() {
     const saved: unknown = await this.loadData();
@@ -110,6 +129,32 @@ export default class HemingwayPlugin extends Plugin {
     this.addCommand({ id: "toggle-focus", name: "Toggle focus mode", callback: () => this.toggleFocus() });
     this.addCommand({ id: "open-panel", name: "Open panel", callback: () => void this.openPanel() });
 
+    const rewrite = (editor: Editor) => {
+      const cm = (editor as unknown as { cm?: EditorView }).cm;
+      if (cm) this.rewriteSelection(cm);
+    };
+    this.addCommand({ id: "rewrite-selection", name: "Rewrite selection with AI", editorCallback: rewrite });
+    const proofread = (editor: Editor) => {
+      const cm = (editor as unknown as { cm?: EditorView }).cm;
+      if (!cm) return;
+      if (!this.settings.aiEnabled) return void new Notice("Turn on AI rewrite in Hemingway's settings first.");
+      const sel = cm.state.selection.main;
+      const whole = sel.empty;
+      const range = whole ? { from: 0, to: cm.state.doc.length } : { from: sel.from, to: sel.to };
+      new ProofreadModal(this.app, this, cm, range, whole).open();
+    };
+    this.addCommand({ id: "proofread", name: "Proofread with AI (selection or whole note)", editorCallback: proofread });
+    this.registerEvent(
+      this.app.workspace.on("editor-menu", (menu, editor) => {
+        if (!this.settings.aiEnabled) return;
+        const has = !!editor.getSelection();
+        if (has) menu.addItem((item) => item.setTitle("Hemingway: rewrite selection").setIcon("sparkles").onClick(() => rewrite(editor)));
+        menu.addItem((item) =>
+          item.setTitle(has ? "Hemingway: proofread selection" : "Hemingway: proofread note").setIcon("spell-check").onClick(() => proofread(editor))
+        );
+      })
+    );
+
     this.registerEvent(this.app.workspace.on("active-leaf-change", (leaf) => this.trackLeaf(leaf)));
 
     this.applyBody();
@@ -120,6 +165,7 @@ export default class HemingwayPlugin extends Plugin {
   }
 
   onunload() {
+    void unloadEngine();
     if (this.focusSaved) this.toggleFocus();
     void this.saveData(this.settings);
     document.body.classList.remove("hw-on", "hw-focus", ...ALL_KINDS.map((k) => "hw-hide-" + k));

@@ -1,5 +1,7 @@
-import { App, PluginSettingTab, Setting } from "obsidian";
+import { App, Notice, PluginSettingTab, Setting } from "obsidian";
 import type { SettingDefinitionItem } from "obsidian";
+import { STYLES } from "./ai";
+import { BUILTIN, deleteModel, getEngine, gpuSupport, isInstalled } from "./webllm";
 import type { Kind } from "./analyzer";
 import type HemingwayPlugin from "./main";
 
@@ -61,6 +63,84 @@ export class HemingwaySettingTab extends PluginSettingTab {
       for (const row of section.rows) row.render(new Setting(el).setName(row.name).setDesc(row.desc));
     }
   }
+
+  private refreshAi?: () => void;
+
+  hide() {
+    this.onClose?.();
+    this.onClose = undefined;
+    this.refreshAi = undefined;
+  }
+
+  private renderBuiltinSetup(setting: Setting) {
+    let alive = true;
+    const prevHide = this.refreshAi;
+    const key = () => this.plugin.settings.aiBuiltinModel;
+    const label = () => BUILTIN[key()]?.label.split(" · ")[0] ?? key();
+    const render = (state: "checking" | "unsupported" | "missing" | "ready" | "loading", detail = "") => {
+      if (!alive) return;
+      setting.controlEl.empty();
+      const msg = {
+        checking: "Checking…",
+        unsupported: "This computer's graphics (WebGPU) isn't available. Built-in AI requires WebGPU.",
+        missing: `${label()} isn't downloaded yet.`,
+        ready: `✓ Ready. ${label()} is installed and works offline.`,
+        loading: detail || "Starting download…",
+      }[state];
+      setting.setName("AI setup").setDesc(msg);
+      if (state === "missing") setting.addButton((b) => b.setButtonText("Download & enable").setCta().onClick(() => void install()));
+      if (state === "ready") {
+        setting.addButton((b) => b.setButtonText("Check again").onClick(() => void check()));
+        setting.addButton((b) => b.setButtonText("Delete model").setWarning().onClick(() => void remove()));
+      }
+    };
+    const remove = async () => {
+      if (!window.confirm(`Delete ${label()} and free its disk space? AI rewrite will turn off. You can download it again any time.`)) return;
+      render("checking");
+      try {
+        await deleteModel(key());
+        this.plugin.settings.aiEnabled = false;
+        void this.plugin.persist();
+        new Notice(`${label()} deleted. AI rewrite is off.`);
+        this.display();
+      } catch (e) {
+        await check();
+        setting.setDesc(`Couldn't delete: ${e instanceof Error ? e.message : "unknown error"}.`);
+      }
+    };
+    const check = async () => {
+      render("checking");
+      if ((await gpuSupport()) === "none") return render("unsupported");
+      render((await isInstalled(key())) ? "ready" : "missing");
+    };
+    const install = async () => {
+      render("loading");
+      try {
+        await getEngine(key(), (f, text) => {
+          const pct = Math.round(f * 100);
+          render("loading", `${/fetch|download/i.test(text) ? "Downloading" : "Preparing"} ${label()}… ${pct}%`);
+        });
+        this.plugin.settings.aiEnabled = true;
+        void this.plugin.persist();
+        new Notice("AI rewrite is ready and switched on.");
+        render("ready");
+      } catch (e) {
+        render("missing");
+        setting.setDesc(`Download failed: ${e instanceof Error ? e.message : "unknown error"}. Check your connection and try again.`);
+      }
+    };
+    this.refreshAi = () => {
+      prevHide?.();
+      void check();
+    };
+    this.refreshAi = () => void check();
+    this.onClose = () => {
+      alive = false;
+    };
+    void check();
+  }
+
+  private onClose?: () => void;
 
   private settingSections(): SettingSection[] {
     const row = (name: string, desc: string, render: (setting: Setting) => void): SettingRow => ({
@@ -148,6 +228,43 @@ export class HemingwaySettingTab extends PluginSettingTab {
           row("Focus mode", "Hides sidebars, tabs and the status bar. Also available as a command.", (setting) =>
             setting.addButton((button) => button.setButtonText("Toggle").onClick(() => this.plugin.toggleFocus()))
           ),
+        ],
+      },
+      {
+        heading: "AI rewrite (optional)",
+        rows: [
+          row("Enable AI rewrite", "Adds a “Rewrite with AI” button to yellow and red sentences. The model runs on your computer, so your writing never leaves it.", (setting) =>
+            setting.addToggle((toggle) =>
+              toggle.setValue(this.plugin.settings.aiEnabled).onChange((value) => {
+                this.plugin.settings.aiEnabled = value;
+                void this.plugin.persist();
+              })
+            )
+          ),
+          row("Rewrite style", "How the AI edits. “Keep my voice” changes the least.", (setting) =>
+            setting.addDropdown((dd) =>
+              dd
+                .addOptions(STYLES)
+                .setValue(this.plugin.settings.aiStyle)
+                .onChange((value) => {
+                  this.plugin.settings.aiStyle = value === "voice" || value === "punchy" ? value : "balanced";
+                  void this.plugin.persist();
+                })
+            )
+          ),
+          row("AI model", "Choose a model to download once for offline use. Both run locally and keep your writing on your device.", (setting) =>
+            setting.addDropdown((dd) =>
+              dd
+                .addOptions(Object.fromEntries(Object.entries(BUILTIN).map(([k, m]) => [k, m.label])))
+                .setValue(this.plugin.settings.aiBuiltinModel)
+                .onChange((value) => {
+                  this.plugin.settings.aiBuiltinModel = value;
+                  void this.plugin.persist();
+                  this.refreshAi?.();
+                })
+            )
+          ),
+          row("AI setup", "", (setting) => this.renderBuiltinSetup(setting)),
         ],
       },
       {
