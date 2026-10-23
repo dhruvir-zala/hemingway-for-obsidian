@@ -60,9 +60,8 @@ class ConfirmModal extends Modal {
 const confirmAction = (app: App, message: string, confirmText: string) =>
   new Promise<boolean>((resolve) => new ConfirmModal(app, message, confirmText, resolve).open());
 
-// setDestructive needs a recent Obsidian; older versions get the same red style by class.
+// setDestructive needs Obsidian 1.13, so the same red style is applied by class.
 function markDestructive(button: ButtonComponent): ButtonComponent {
-  if (typeof button.setDestructive === "function") return button.setDestructive();
   button.buttonEl.addClass("mod-warning");
   return button;
 }
@@ -91,7 +90,6 @@ export class HemingwaySettingTab extends PluginSettingTab {
   }
 
   // Obsidian before 1.13 only knows display(); newer versions use getSettingDefinitions() instead.
-  // eslint-disable-next-line @typescript-eslint/no-deprecated
   display() {
     const { containerEl: el } = this;
     el.empty();
