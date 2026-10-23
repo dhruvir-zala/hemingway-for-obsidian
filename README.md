@@ -38,7 +38,11 @@ When a blue or purple word sits inside a yellow sentence, the word wins. You can
 
 **Optional local AI rewrite.** Turn it on in settings and yellow and red sentences get a "Rewrite with AI" button. You see the suggestion first, then apply it or click **Another option** to request another version. Passive-voice highlights offer a sentence rewrite too. To rewrite any text, select it and right-click → "Hemingway: rewrite selection" (or use the command "Rewrite selection with AI" and give it a hotkey). The built-in model is **Llama 3.2 3B Instruct • Q4 MLC** (about 2.3 GB), which runs inside Obsidian on your graphics chip. It is not a GGUF Q4_K_M/Q8_0 file. Open Hemingway's settings and click **Download & enable**; the model downloads once and then runs offline. Your writing never leaves your computer. It needs WebGPU, which recent desktop Obsidian has. It's off by default.
 
+![Rewrite with AI: a hard sentence with a word-level diff, grade 11 to 7, and Apply, Copy, Another option and Proofread buttons](docs/images/AI.png)
+
 **Proofread with AI.** A separate tool that fixes mistakes without rewriting your sentences. Right-click → "Hemingway: proofread note" (or select text first to check just that), click **✓ Proofread** on a highlight card, or run **Proofread with AI (selection or whole note)**. It checks typos, punctuation, grammar, wrong words and repetition in one pass. You get a list of individual fixes, each with a checkbox, and apply the ones you want as a single undo step. The plugin rejects any result where the model changes too many words, and it never touches links, code, front matter or numbers.
+
+![Proofread with AI: a list of spelling and grammar fixes, each with a checkbox, and an Apply button](docs/images/Proofreading.png)
 
 ## What it doesn't do
 
@@ -76,6 +80,8 @@ Give them hotkeys in Settings → Hotkeys. I'd start with the first one.
 You can change the target grade (9 by default), your reading speed for the reading-time number, and which types of highlight are on. You can add your own hedge phrases, one per line, and a list of words to never flag. That second list is for the words you use on purpose. Nobody's taking "very" away from you, but the plugin will mention it.
 
 AI rewriting is off by default. In the **AI rewrite (optional)** settings, choose a rewrite style and download the built-in model. AI requires WebGPU; the first model download needs an internet connection and uses about 2.3 GB of storage. After downloading, rewriting and proofreading run locally and work offline. You can delete the model from settings to free its storage.
+
+![Hemingway settings: Enable AI rewrite, rewrite style, AI model and AI setup](docs/images/Settings.png)
 
 ## How the grade works
 
