@@ -102,6 +102,10 @@ Copy or symlink the repo into `<vault>/.obsidian/plugins/hemingway/`, reload Obs
 
 Bug reports, word-list fixes and translations are welcome. The best bug report has the sentence, which highlight was wrong, and what you expected instead. Don't copy anything from hemingwayapp.com, though. Everything here has to be written independently.
 
+## Support the project
+
+If Hemingway for Obsidian is useful to you, you can [buy me a coffee on Ko-fi](https://ko-fi.com/dhruvirzala). Thank you for supporting its development.
+
 ## Trademarks
 
 All product names and trademarks belong to their owners, and using them here doesn't mean anyone is affiliated with or endorses anyone. The grade uses a published formula, the word lists are my own, and nothing was copied from hemingwayapp.com.
