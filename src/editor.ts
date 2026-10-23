@@ -76,6 +76,20 @@ export function hemingwayExtension(plugin: HemingwayPlugin, field: StateField<Fi
     view.focus();
   };
 
+  const iconButton = (parent: HTMLElement, icon: string, label: string) => {
+    // A hidden text label keeps the button accessible without Obsidian's hover tooltip that aria-label triggers.
+    const b = parent.createEl("button", { cls: "clickable-icon hw-tip-icon" });
+    setIcon(b, icon);
+    b.createSpan({ cls: "hw-sr-only", text: label });
+    return b;
+  };
+
+  const iconLabel = (b: HTMLElement, icon: string, text: string) => {
+    b.empty();
+    setIcon(b.createSpan({ cls: "hw-btn-icon" }), icon);
+    b.createSpan({ text });
+  };
+
   const MAX_OPTIONS = 4;
   const MAX_CHARS = 2000;
 
@@ -97,7 +111,9 @@ export function hemingwayExtension(plugin: HemingwayPlugin, field: StateField<Fi
     el.insertBefore(box, actions);
 
     const addProofread = () => {
-      actions.createEl("button", { cls: "hw-ghost", text: "✓ Proofread" }).addEventListener("click", () => {
+      const pf = actions.createEl("button", { cls: "hw-ghost" });
+      iconLabel(pf, "check-check", "Proofread");
+      pf.addEventListener("click", () => {
         closeTip();
         new ProofreadModal(plugin.app, plugin, view, range, false).open();
       });
@@ -113,12 +129,12 @@ export function hemingwayExtension(plugin: HemingwayPlugin, field: StateField<Fi
       if (r) {
         if (results.length > 1) {
           const pager = box.createDiv({ cls: "hw-tip-pager hw-ai-pager" });
-          pager.createEl("button", { text: "‹", attr: { "aria-label": "Previous option" } }).addEventListener("click", () => {
+          iconButton(pager, "chevron-left", "Previous option").addEventListener("click", () => {
             idx = (idx + results.length - 1) % results.length;
             paint();
           });
-          pager.createSpan({ text: `Option ${idx + 1}/${results.length}` });
-          pager.createEl("button", { text: "›", attr: { "aria-label": "Next option" } }).addEventListener("click", () => {
+          pager.createSpan({ cls: "hw-tip-count", text: `Option ${idx + 1} of ${results.length}` });
+          iconButton(pager, "chevron-right", "Next option").addEventListener("click", () => {
             idx = (idx + 1) % results.length;
             paint();
           });
@@ -152,6 +168,7 @@ export function hemingwayExtension(plugin: HemingwayPlugin, field: StateField<Fi
       } else {
         const go = actions.createEl("button", { cls: "mod-cta", text: busy ? "Rewriting…" : label });
         go.disabled = busy;
+        if (!busy) iconLabel(go, "sparkles", label);
         go.addEventListener("click", () => void generate());
         addProofread();
       }
@@ -235,10 +252,16 @@ export function hemingwayExtension(plugin: HemingwayPlugin, field: StateField<Fi
     tip = el;
     el.createDiv({ cls: "hw-tip-arrow" });
     const head = el.createDiv({ cls: "hw-tip-head" });
-    head.createDiv({ cls: "hw-tip-title", text: "Rewrite selection" });
-    const close = head.createEl("button", { cls: "hw-tip-close", attr: { "aria-label": "Close" } });
-    setIcon(close, "x");
+    head.createSpan({ cls: "hw-tip-dot" });
+    head.createDiv({ cls: "hw-tip-title", text: "Rewrite selection", attr: { id: "hw-tip-title" } });
+    el.setAttr("aria-labelledby", "hw-tip-title");
+    const close = iconButton(head, "x", "Close");
     close.addEventListener("click", () => {
+      closeTip();
+      view.focus();
+    });
+    el.addEventListener("keydown", (ev) => {
+      if (ev.key !== "Escape") return;
       closeTip();
       view.focus();
     });
@@ -255,7 +278,7 @@ export function hemingwayExtension(plugin: HemingwayPlugin, field: StateField<Fi
       el.style.top = (below ? coords.bottom + gap : coords.top - gap - h) + "px";
       el.style.setProperty("--hw-arrow-x", Math.max(14, Math.min(coords.left - left, w - 14)) + "px");
     };
-    mountAi(el, actions, view, { from: sel.from, to: sel.to }, "✨ Rewrite with AI", place);
+    mountAi(el, actions, view, { from: sel.from, to: sel.to }, "Rewrite with AI", place);
     place();
     onDocDown = (e) => {
       if (tip && !tip.contains(e.target as Node)) closeTip();
@@ -274,6 +297,11 @@ export function hemingwayExtension(plugin: HemingwayPlugin, field: StateField<Fi
     tip = el;
     const text = view.state.doc.toString();
     let index = 0;
+    el.addEventListener("keydown", (ev) => {
+      if (ev.key !== "Escape") return;
+      closeTip();
+      view.focus();
+    });
 
     const render = () => {
       el.empty();
@@ -282,7 +310,9 @@ export function hemingwayExtension(plugin: HemingwayPlugin, field: StateField<Fi
       el.createDiv({ cls: "hw-tip-arrow" });
 
       const head = el.createDiv({ cls: "hw-tip-head" });
-      head.createDiv({ cls: "hw-tip-title", text: TITLES[issue.kind] });
+      head.createSpan({ cls: "hw-tip-dot" });
+      head.createDiv({ cls: "hw-tip-title", text: TITLES[issue.kind], attr: { id: "hw-tip-title" } });
+      el.setAttr("aria-labelledby", "hw-tip-title");
       if (hits.length > 1) {
         const pager = head.createDiv({ cls: "hw-tip-pager" });
         const step = (d: number) => {
@@ -290,12 +320,11 @@ export function hemingwayExtension(plugin: HemingwayPlugin, field: StateField<Fi
           render();
           place();
         };
-        pager.createEl("button", { text: "‹", attr: { "aria-label": "Previous issue" } }).addEventListener("click", () => step(-1));
-        pager.createSpan({ text: `${index + 1}/${hits.length}` });
-        pager.createEl("button", { text: "›", attr: { "aria-label": "Next issue" } }).addEventListener("click", () => step(1));
+        iconButton(pager, "chevron-left", "Previous issue").addEventListener("click", () => step(-1));
+        pager.createSpan({ cls: "hw-tip-count", text: `${index + 1} of ${hits.length}` });
+        iconButton(pager, "chevron-right", "Next issue").addEventListener("click", () => step(1));
       }
-      const close = head.createEl("button", { cls: "hw-tip-close", attr: { "aria-label": "Close" } });
-      setIcon(close, "x");
+      const close = iconButton(head, "x", "Close");
       close.addEventListener("click", () => {
         closeTip();
         view.focus();
@@ -304,8 +333,12 @@ export function hemingwayExtension(plugin: HemingwayPlugin, field: StateField<Fi
       const phrase = text.slice(issue.start, issue.end);
       const hard = issue.kind === "hard" || issue.kind === "veryhard";
       el.createDiv({ cls: "hw-tip-sub", text: HELP[issue.kind] });
-      if (hard) el.createDiv({ cls: "hw-tip-meta", text: `${issue.words} words · grade ${issue.grade}` });
-      else if (issue.kind === "passive") el.createDiv({ cls: "hw-tip-meta", text: `“${phrase}”` });
+      if (hard) {
+        const meta = el.createDiv({ cls: "hw-tip-meta" });
+        meta.createSpan({ cls: "hw-chip", text: `${issue.words} words` });
+        meta.createSpan({ cls: "hw-chip", text: `Grade ${issue.grade}` });
+      }
+      else el.createDiv({ cls: "hw-tip-quote", text: phrase });
 
       const actions = el.createDiv({ cls: "hw-tip-actions" });
       const done = () => closeTip();
@@ -326,7 +359,7 @@ export function hemingwayExtension(plugin: HemingwayPlugin, field: StateField<Fi
       }
       if ((hard || issue.kind === "passive") && plugin.settings.aiEnabled) {
         const range = hard ? { from: issue.start, to: issue.end } : sentenceAround(text, issue.start, issue.end);
-        mountAi(el, actions, view, range, hard ? "✨ Rewrite with AI" : "✨ Rewrite sentence", place);
+        mountAi(el, actions, view, range, hard ? "Rewrite with AI" : "Rewrite sentence", place);
       }
       if (!hard) {
         actions.createEl("button", { cls: "hw-ghost", text: "Ignore" }).addEventListener("click", () => {

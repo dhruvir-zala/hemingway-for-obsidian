@@ -67,7 +67,7 @@ Add `dhruvir-zala/hemingway-for-obsidian` in the [BRAT](https://github.com/TfTHa
 
 | Command | What it does |
 | --- | --- |
-| Toggle highlights (Write / Edit) | Shows or hides every highlight |
+| Toggle highlights (Write / Edit) | Switches between showing and hiding highlights |
 | Toggle focus mode | Hides the sidebars, tabs and status bar |
 | Open panel | Opens the Hemingway side panel |
 | Rewrite selection with AI | Rewrites the selected text locally with AI |
