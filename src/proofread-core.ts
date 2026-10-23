@@ -1,5 +1,5 @@
 import { wordDiff } from "./diff";
-import { LINK_RE, PROTECT_RE } from "./markup";
+import { replaceLinks, replaceProtected } from "./markup";
 
 export type ProofLevel = "proofread" | "grammar" | "edit";
 
@@ -27,14 +27,16 @@ function splitLong(start: number, text: string): Chunk[] {
   let cur = 0;
   let lastEnd = -1;
   let lastNext = -1;
-  for (const m of text.matchAll(/(?<=[.!?])\s+|\n/g)) {
-    const end = m.index ?? 0;
+  // Matches the punctuation too, so `end` skips past it to sit where the whitespace starts.
+  for (const m of text.matchAll(/([.!?])\s+|\n/g)) {
+    const at = m.index ?? 0;
+    const end = at + (m[1]?.length ?? 0);
     if (end - cur > MAX_CHUNK && lastEnd > cur) {
       pieces.push([cur, lastEnd]);
       cur = lastNext;
     }
     lastEnd = end;
-    lastNext = end + m[0].length;
+    lastNext = at + m[0].length;
   }
   pieces.push([cur, text.length]);
   return pieces.map(([a, b]) => ({ from: start + a, text: text.slice(a, b) })).filter((c) => c.text.trim());
@@ -91,7 +93,7 @@ export function splitChunks(doc: string, from = 0, to = doc.length): Chunk[] {
     if (nl >= doc.length) break;
     pos = nl + 1;
   }
-  if (group) emit((group as { start: number; end: number }).start, (group as { start: number; end: number }).end);
+  if (group) emit(group.start, group.end);
   return out;
 }
 
@@ -102,7 +104,7 @@ export function maskAll(text: string): { masked: string; tokens: string[] } {
     tokens.push(m);
     return `§${tokens.length}§`;
   };
-  return { masked: text.replace(LINK_RE, hide).replace(PROTECT_RE, hide), tokens };
+  return { masked: replaceProtected(replaceLinks(text, hide), hide), tokens };
 }
 
 function lev(a: string, b: string): number {

@@ -83,7 +83,13 @@ export function maskMarkdown(text: string): string {
   run(/^[ \t]*(?:>[ \t]?)+/gm);
   run(/^[ \t]*(?:-{3,}|\*{3,}|_{3,})[ \t]*$/gm);
   run(/\*+|~~|==/g);
-  run(/(?<![A-Za-z0-9])_+|_+(?![A-Za-z0-9])/g);
+  // Underscores are emphasis unless they sit between letters or digits (snake_case).
+  for (const m of text.matchAll(/_+/g)) {
+    const at = m.index ?? 0;
+    if (!(/[A-Za-z0-9]/.test(text[at - 1] ?? "") && /[A-Za-z0-9]/.test(text[at + m[0].length] ?? ""))) {
+      blank(c, at, at + m[0].length);
+    }
+  }
   run(/\^[A-Za-z0-9-]+$/gm);
   run(/\|/g);
   return c.join("");
@@ -99,7 +105,21 @@ function matchCase(source: string, replacement: string): string {
 
 const escapeRe = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 const phraseRe = (p: string) =>
-  new RegExp(`(?<![A-Za-z'’-])${p.split(" ").map(escapeRe).join("\\s+")}(?![A-Za-z'’-])`, "gi");
+  new RegExp(`${p.split(" ").map(escapeRe).join("\\s+")}(?![A-Za-z'’-])`, "gi");
+
+const WORD_EDGE_RE = /[A-Za-z'’-]/;
+// Yields matches that don't start in the middle of a word (iOS < 16.4 has no lookbehind).
+function* scan(re: RegExp, seg: string): Generator<RegExpExecArray> {
+  re.lastIndex = 0;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(seg))) {
+    if (m.index > 0 && WORD_EDGE_RE.test(seg[m.index - 1])) {
+      re.lastIndex = m.index + 1;
+      continue;
+    }
+    yield m;
+  }
+}
 
 const SIMPLER_RES = Object.keys(SIMPLER)
   .sort((a, b) => b.length - a.length)
@@ -119,10 +139,10 @@ const BE = "is|are|was|were|be|been|being|am|isn't|aren't|wasn't|weren't|isn’t
 // Words that may sit between the "be" verb and the participle: "was not yet done".
 const FILLER = "(?:[A-Za-z]+ly|not|never|also|still|already|always|ever|yet|now|then|just|even|often|usually)";
 const PASSIVE_RE = new RegExp(
-  `(?<![A-Za-z'’-])(?:${BE})(?:\\s+${FILLER})*\\s+([A-Za-z]+)(?![A-Za-z'’-])`,
+  `(?:${BE})(?:\\s+${FILLER})*\\s+([A-Za-z]+)(?![A-Za-z'’-])`,
   "gi"
 );
-const ADVERB_RE = /(?<![A-Za-z'’-])[A-Za-z]{3,}ly(?![A-Za-z'’-])/g;
+const ADVERB_RE = /[A-Za-z]{3,}ly(?![A-Za-z'’-])/g;
 
 function isParticiple(word: string): boolean {
   const w = word.toLowerCase();
@@ -195,25 +215,17 @@ export function analyze(text: string, opts: Options = {}): Analysis {
     };
 
     for (const { key, re } of SIMPLER_RES) {
-      re.lastIndex = 0;
-      let m: RegExpExecArray | null;
-      while ((m = re.exec(seg))) {
-        tryPush("simpler", m.index, m.index + m[0].length, SIMPLER[key].map((r) => matchCase(m![0], r)));
+      for (const m of scan(re, seg)) {
+        tryPush("simpler", m.index, m.index + m[0].length, SIMPLER[key].map((r) => matchCase(m[0], r)));
       }
     }
     for (const re of weakeners) {
-      re.lastIndex = 0;
-      let m: RegExpExecArray | null;
-      while ((m = re.exec(seg))) tryPush("weakener", m.index, m.index + m[0].length);
+      for (const m of scan(re, seg)) tryPush("weakener", m.index, m.index + m[0].length);
     }
-    PASSIVE_RE.lastIndex = 0;
-    let pm: RegExpExecArray | null;
-    while ((pm = PASSIVE_RE.exec(seg))) {
+    for (const pm of scan(PASSIVE_RE, seg)) {
       if (isParticiple(pm[1])) tryPush("passive", pm.index, pm.index + pm[0].length);
     }
-    ADVERB_RE.lastIndex = 0;
-    let am: RegExpExecArray | null;
-    while ((am = ADVERB_RE.exec(seg))) {
+    for (const am of scan(ADVERB_RE, seg)) {
       if (NOT_ADVERBS.has(am[0].toLowerCase())) continue;
       // A capitalised word mid-sentence is almost always a name ("Emily", "Italy").
       if (am.index > 0 && /[A-Z]/.test(am[0][0]) && /[a-z0-9,;]/.test(seg.slice(0, am.index).trimEnd().slice(-1))) continue;

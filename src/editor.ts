@@ -140,16 +140,6 @@ export function hemingwayExtension(plugin: HemingwayPlugin, field: StateField<Fi
           view.dispatch({ changes: { from: range.from, to: range.to, insert }, selection: { anchor: range.from + insert.length } });
           view.focus();
         });
-        const copy = actions.createEl("button", { cls: "hw-ghost", text: "Copy" });
-        copy.addEventListener("click", () => {
-          navigator.clipboard.writeText(r.text).then(
-            () => {
-              copy.setText("Copied ✓");
-              window.setTimeout(() => copy.isConnected && copy.setText("Copy"), 1500);
-            },
-            () => new Notice("Couldn't copy to the clipboard.")
-          );
-        });
         actions.createEl("button", { cls: "hw-ghost", text: showDiff ? "Hide changes" : "Show changes" }).addEventListener("click", () => {
           showDiff = !showDiff;
           paint();

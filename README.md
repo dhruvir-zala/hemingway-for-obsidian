@@ -38,7 +38,7 @@ When a blue or purple word sits inside a yellow sentence, the word wins. You can
 
 **Optional local AI rewrite.** Turn it on in settings and yellow and red sentences get a "Rewrite with AI" button. You see the suggestion first, then apply it or click **Another option** to request another version. Passive-voice highlights offer a sentence rewrite too. To rewrite any text, select it and right-click → "Hemingway: rewrite selection" (or use the command "Rewrite selection with AI" and give it a hotkey). The built-in model is **Llama 3.2 3B Instruct • Q4 MLC** (about 2.3 GB), which runs inside Obsidian on your graphics chip. It is not a GGUF Q4_K_M/Q8_0 file. Open Hemingway's settings and click **Download & enable**; the model downloads once and then runs offline. Your writing never leaves your computer. It needs WebGPU, which recent desktop Obsidian has. It's off by default.
 
-![Rewrite with AI: a hard sentence with a word-level diff, grade 11 to 7, and Apply, Copy, Another option and Proofread buttons](docs/images/AI.png)
+![Rewrite with AI: a hard sentence with a word-level diff, grade 11 to 7, and Apply, Another option and Proofread buttons](docs/images/AI.png)
 
 **Proofread with AI.** A separate tool that fixes mistakes without rewriting your sentences. Right-click → "Hemingway: proofread note" (or select text first to check just that), click **✓ Proofread** on a highlight card, or run **Proofread with AI (selection or whole note)**. It checks typos, punctuation, grammar, wrong words and repetition in one pass. You get a list of individual fixes, each with a checkbox, and apply the ones you want as a single undo step. The plugin rejects any result where the model changes too many words, and it never touches links, code, front matter or numbers.
 

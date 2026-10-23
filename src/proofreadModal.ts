@@ -10,8 +10,6 @@ interface Row {
   on: boolean;
 }
 
-const wordsIn = (t: string) => t.match(/\S+/g)?.length ?? 0;
-
 export class ProofreadModal extends Modal {
   // Always the full pass: typos, punctuation, grammar and wrong or repeated words.
   private level: ProofLevel = "edit";

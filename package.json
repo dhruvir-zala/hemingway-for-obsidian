@@ -6,13 +6,14 @@
   "scripts": {
     "dev": "node esbuild.config.mjs",
     "build": "tsc --noEmit --skipLibCheck && node esbuild.config.mjs production",
-    "test": "esbuild test/analyzer.test.mts --bundle --platform=node --format=esm --outfile=test/.out.mjs --log-level=error && node test/.out.mjs && esbuild test/proofread.test.mts --bundle --platform=node --format=esm --outfile=test/.out2.mjs --log-level=error && node test/.out2.mjs",
+    "test": "esbuild test/analyzer.test.mts --bundle --platform=node --format=esm --outfile=test/.out.mjs --log-level=error && node test/.out.mjs && esbuild test/proofread.test.mts --bundle --platform=node --format=esm --outfile=test/.out2.mjs --log-level=error && node test/.out2.mjs && esbuild test/tokenizer.test.mts --bundle --platform=node --format=esm --outfile=test/.out3.mjs --log-level=error && node test/.out3.mjs",
     "version": "node version-bump.mjs && git add manifest.json versions.json"
   },
   "license": "MIT",
   "devDependencies": {
     "@codemirror/state": "6.7.6",
     "@codemirror/view": "6.43.13",
+    "@huggingface/tokenizers": "^0.2.0",
     "@types/node": "^20.0.0",
     "esbuild": "^0.21.0",
     "obsidian": "1.14.4",

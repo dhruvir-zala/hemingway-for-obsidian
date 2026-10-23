@@ -1,4 +1,4 @@
-import { App, Notice, PluginSettingTab, Setting } from "obsidian";
+import { App, ButtonComponent, Modal, Notice, PluginSettingTab, Setting } from "obsidian";
 import type { SettingDefinitionItem } from "obsidian";
 import { STYLES } from "./ai";
 import { BUILTIN, deleteModel, getEngine, gpuSupport, isInstalled } from "./webllm";
@@ -20,10 +20,51 @@ const lines = (v: string) =>
     .map((l) => l.trim().toLowerCase())
     .filter(Boolean);
 
+// Setting has a then() method, so a render callback that returns it reads as a Promise to linters.
+type RenderSetting = (setting: Setting) => unknown;
+
 interface SettingRow {
   name: string;
   desc: string;
-  render: (setting: Setting) => void;
+  render: RenderSetting;
+}
+
+class ConfirmModal extends Modal {
+  private answered = false;
+
+  constructor(app: App, private message: string, private confirmText: string, private done: (ok: boolean) => void) {
+    super(app);
+  }
+
+  onOpen() {
+    this.contentEl.createEl("p", { text: this.message });
+    new Setting(this.contentEl)
+      .addButton((b) => b.setButtonText("Cancel").onClick(() => this.finish(false)))
+      .addButton((b) => markDestructive(b.setButtonText(this.confirmText)).onClick(() => this.finish(true)));
+  }
+
+  onClose() {
+    this.contentEl.empty();
+    if (!this.answered) this.done(false);
+    this.answered = true;
+  }
+
+  private finish(ok: boolean) {
+    if (this.answered) return;
+    this.answered = true;
+    this.done(ok);
+    this.close();
+  }
+}
+
+const confirmAction = (app: App, message: string, confirmText: string) =>
+  new Promise<boolean>((resolve) => new ConfirmModal(app, message, confirmText, resolve).open());
+
+// setDestructive needs a recent Obsidian; older versions get the same red style by class.
+function markDestructive(button: ButtonComponent): ButtonComponent {
+  if (typeof button.setDestructive === "function") return button.setDestructive();
+  button.buttonEl.addClass("mod-warning");
+  return button;
 }
 
 interface SettingSection {
@@ -49,6 +90,8 @@ export class HemingwaySettingTab extends PluginSettingTab {
     );
   }
 
+  // Obsidian before 1.13 only knows display(); newer versions use getSettingDefinitions() instead.
+  // eslint-disable-next-line @typescript-eslint/no-deprecated
   display() {
     const { containerEl: el } = this;
     el.empty();
@@ -91,11 +134,16 @@ export class HemingwaySettingTab extends PluginSettingTab {
       if (state === "missing") setting.addButton((b) => b.setButtonText("Download & enable").setCta().onClick(() => void install()));
       if (state === "ready") {
         setting.addButton((b) => b.setButtonText("Check again").onClick(() => void check()));
-        setting.addButton((b) => b.setButtonText("Delete model").setWarning().onClick(() => void remove()));
+        setting.addButton((b) => markDestructive(b.setButtonText("Delete model")).onClick(() => void remove()));
       }
     };
     const remove = async () => {
-      if (!window.confirm(`Delete ${label()} and free its disk space? AI rewrite will turn off. You can download it again any time.`)) return;
+      const ok = await confirmAction(
+        this.app,
+        `Delete ${label()} and free its disk space? AI rewrite will turn off. You can download it again any time.`,
+        "Delete model"
+      );
+      if (!ok) return;
       render("checking");
       try {
         await deleteModel(key());
@@ -143,7 +191,7 @@ export class HemingwaySettingTab extends PluginSettingTab {
   private onClose?: () => void;
 
   private settingSections(): SettingSection[] {
-    const row = (name: string, desc: string, render: (setting: Setting) => void): SettingRow => ({
+    const row = (name: string, desc: string, render: RenderSetting): SettingRow => ({
       name,
       desc,
       render,

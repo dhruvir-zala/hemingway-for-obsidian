@@ -1,5 +1,5 @@
 import { Analysis, Issue, analyze } from "./analyzer";
-import { LINK_RE, PROTECT_RE, restore } from "./markup";
+import { replaceLinks, replaceProtected, restore } from "./markup";
 import { builtinChat } from "./webllm";
 
 export interface AiConfig {
@@ -79,11 +79,11 @@ export interface LinkRef {
 export function protect(text: string): { masked: string; tokens: string[]; links: LinkRef[] } {
   const tokens: string[] = [];
   const links: LinkRef[] = [];
-  const hidden = text.replace(PROTECT_RE, (m) => {
+  const hidden = replaceProtected(text, (m) => {
     tokens.push(m);
     return `§${tokens.length}§`;
   });
-  const masked = hidden.replace(LINK_RE, (_m, target?: string, alias?: string, label?: string, url?: string) => {
+  const masked = replaceLinks(hidden, (_m, target, alias, label, url) => {
     if (target !== undefined) {
       const display = (alias ?? target.replace(/#.*$/, "")).trim() || target;
       links.push({ display, wrap: (shown) => (shown === target ? `[[${target}]]` : `[[${target}|${shown}]]`) });
@@ -118,8 +118,17 @@ export function relink(text: string, links: LinkRef[]): { text: string; missing:
 
 const NUM_RE = /\d+(?:[.,]\d+)*/g;
 const nums = (t: string) => (t.match(NUM_RE) ?? []).map((f) => f.replace(/[.,]+$/, ""));
-const NAME_RE = /(?<=[\p{Ll}\d,;:]\s)[\p{Lu}][\p{L}'’-]+/gu;
-const names = (t: string) => new Set(t.match(NAME_RE) ?? []);
+const CAPITALIZED_RE = /\p{Lu}[\p{L}'’-]+/gu;
+const MID_SENTENCE_RE = /[\p{Ll}\d,;:]\s$/u;
+// Capitalized words that don't start a sentence, which are most likely names.
+const names = (t: string) => {
+  const found = new Set<string>();
+  for (const m of t.matchAll(CAPITALIZED_RE)) {
+    const at = m.index ?? 0;
+    if (MID_SENTENCE_RE.test(t.slice(Math.max(0, at - 2), at))) found.add(m[0]);
+  }
+  return found;
+};
 const wordCount = (t: string) => (t.match(/[\p{L}\p{N}]+/gu) ?? []).length;
 
 function describe(a: Analysis, text: string): string[] {
