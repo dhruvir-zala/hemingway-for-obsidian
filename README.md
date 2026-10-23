@@ -73,7 +73,9 @@ Add `dhruvir-zala/hemingway-for-obsidian` in the [BRAT](https://github.com/TfTHa
 | Rewrite selection with AI | Rewrites the selected text locally with AI |
 | Proofread with AI (selection or whole note) | Suggests selectable proofreading fixes for the selection, or the whole note if nothing is selected |
 
-Give them hotkeys in Settings → Hotkeys. I'd start with the first one.
+Give them hotkeys in Settings → Hotkeys. I'd start with the first one. All of them also appear in the command palette (search "Hemingway").
+
+![Hemingway commands in Obsidian's command palette: Open panel, Toggle focus mode, Rewrite selection with AI, Toggle highlights and Proofread with AI](docs/images/Hotkeys.png)
 
 ## Settings
 
