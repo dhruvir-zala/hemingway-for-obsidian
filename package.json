@@ -1,6 +1,6 @@
 {
   "name": "obsidian-hemingway",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "Hemingway-style readability highlights, live inside Obsidian notes.",
   "main": "main.js",
   "scripts": {
